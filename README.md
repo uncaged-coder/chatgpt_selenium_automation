@@ -14,14 +14,8 @@ ChatGPT Automation is a Python project that aims to automate interactions with O
  ```python
 from handler.chatgpt_selenium_automation import ChatGPTAutomation
 
-# Define the path where the chrome driver is installed on your computer
-chrome_driver_path = r"C:\Users\user\Desktop\chromedriver.exe"
-
-# the sintax r'"..."' is required because the space in "Program Files" in the chrome path
-chrome_path = r'"C:\Program Files\Google\Chrome\Application\chrome.exe"'
-
 # Create an instance
-chatgpt = ChatGPTAutomation(chrome_path, chrome_driver_path)
+chatgpt = ChatGPTAutomation()
 
 # Define a prompt and send it to chatgpt
 prompt = "What are the benefits of exercise?"
@@ -38,6 +32,8 @@ chatgpt.save_conversation(file_name)
 # Close the browser and terminate the WebDriver session
 chatgpt.quit()
    ```
+
+see chat.py for a console chat example.
    
    
 ## Note 
@@ -60,7 +56,4 @@ While running the script, you may see some error messages or warnings in the con
    
 
 These messages are related to the underlying libraries or the browser, and you can safely ignore them if the script works as expected. If you encounter any issues with the script, please ensure that you have installed the correct dependencies and are using the correct ChromeDriver version compatible with your Chrome browser.
-
-   
-   
 

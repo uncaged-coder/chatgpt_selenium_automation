@@ -11,7 +11,7 @@ import os
 
 class ChatGPTAutomation:
 
-    def __init__(self, chrome_path, chrome_driver_path):
+    def __init__(self, chrome_path="chromium", chrome_driver_path="chromedriver"):
         """
         This constructor automates the following steps:
         1. Open a Chrome browser with remote debugging enabled at a specified URL.
@@ -72,10 +72,13 @@ class ChatGPTAutomation:
         """ Sends a message to ChatGPT and waits for 20 seconds for the response """
 
         input_box = self.driver.find_element(by=By.XPATH, value='//textarea[contains(@placeholder, "Send a message")]')
-        self.driver.execute_script(f"arguments[0].value = '{prompt}';", input_box)
-        input_box.send_keys(Keys.RETURN)
-        time.sleep(20)
-
+        input_box.clear()  # Clear the input box first
+        for char in prompt:
+            input_box.send_keys(char)
+        #self.driver.execute_script(f"arguments[0].value = '{prompt}';", input_box)
+        time.sleep(1)
+        input_box.submit()
+        #input_box.send_keys(Keys.RETURN)
 
 
     def return_chatgpt_conversation(self):
@@ -112,9 +115,38 @@ class ChatGPTAutomation:
 
 
 
+    def wait_for_response(self):
+        """Waits for the response to complete by waiting for the 'Stop generating' button to disappear"""
+
+        response_elements = []
+        last_msg = None
+
+        # wait for the start of response
+        while not response_elements  or last_msg.strip() == "":
+            time.sleep(1)
+            response_elements = self.driver.find_elements(by=By.CSS_SELECTOR, value='div.text-base')
+            if not response_elements:
+                continue
+            last_msg = response_elements[-1].text
+
+        # wait for the "Stop generating button to disapear
+        stop_generating_button = self.driver.find_elements(by=By.XPATH, value='//button[contains(text(), "Stop generating")]')
+        while stop_generating_button:
+            time.sleep(1)
+            stop_generating_button = self.driver.find_elements(by=By.XPATH, value='//button[contains(text(), "Stop generating")]')
+
+        last_msg2 = None
+        while last_msg != last_msg2:
+            last_msg2 = last_msg
+            time.sleep(2)
+            last_msg = response_elements[-1].text
+
+
+
     def return_last_response(self):
         """ :return: the text of the last chatgpt response """
 
+        self.wait_for_response()
         response_elements = self.driver.find_elements(by=By.CSS_SELECTOR, value='div.text-base')
         return response_elements[-1].text
 
@@ -136,6 +168,27 @@ class ChatGPTAutomation:
             else:
                 print("Invalid input. Please enter 'y' or 'n'.")
 
+
+
+    def get_conversations_list(self):
+        """Returns a list of conversations displayed on the left side"""
+
+        #conversation_elements = self.driver.find_elements(by=By.CSS_SELECTOR, value='div.conversation')
+        chat_elements = self.driver.find_elements(by=By.XPATH, value='//li[contains(@class, "relative")]')
+
+        for i, element in enumerate(chat_elements, 1):
+            title_element = element.find_element(by=By.CSS_SELECTOR, value='div.flex-1')
+            print(i, ":", title_element.text)
+
+
+    def select_conversation(self, chat_id):
+        """Selects a chat conversation by clicking on it based on the chat_id"""
+
+        chat_elements = self.driver.find_elements(by=By.XPATH, value='//li[contains(@class, "relative")]')
+        if chat_id > 0 and chat_id <= len(chat_elements):
+            chat_elements[chat_id - 1].click()
+        else:
+            print("Invalid chat_id provided")
 
 
     def quit(self):
